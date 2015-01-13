@@ -13,7 +13,7 @@ z = np.linspace(0.,99.,100.)
 
 x = len(z)
 
-a, b = np.meshgrid(np.linspace(0,x,x) , np.linspace(0,x,x))
+a, b = np.meshgrid(np.linspace(0,x-1,x)+0.5 , np.linspace(0,x-1,x)+0.5)
 c, d = np.meshgrid(np.random.ranf(x) , np.random.ranf(x))
 
 #subsub=np.random.randint(10,size=(100,100))
@@ -157,8 +157,9 @@ for idx, r in enumerate(r_grid[:-1]):
         '''
         
         if x>=0 and y>=0:
-
+            print x,y 
             x_min,x_max,y_min,y_max = x-0.5,x+0.5,y-0.5,y+0.5
+            
             borders = (x_min,x_max,y_min,y_max)
             #Check for interceptionpoints between cicle and pixel
             
@@ -190,8 +191,6 @@ for idx, r in enumerate(r_grid[:-1]):
             '''
             
             Area = 0
-            Area_r_max = 0  
-            Area_r_min = 0  
             
             #CASE 1 WHOLE PIXEL FILLED 
             
