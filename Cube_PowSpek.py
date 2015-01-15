@@ -134,11 +134,12 @@ def vis2d(a):
 def get_radius_gridding(length_of_frame, radius_spaceing):
     x = length_of_frame    
     r_min, r_max, a0,b0 =  1, x/2.,  x/2.,x/2. 
-    #r_grid = np.logspace(np.log10(r_min), np.log10(r_max),16)   
+    r_grid = np.logspace(np.log10(r_min), np.log10(r_max),radius_spaceing)   
     
-    r_grid = np.linspace(r_min, r_max, radius_spaceing)
+    #r_grid = np.linspace(r_min, r_max, radius_spaceing)
     r_grid_mean = 0.5 * (r_grid[1:] + r_grid[:-1])
-    r_grid_mean = np.insert(r_grid_mean,0.1, 0)
+    print r_grid_mean
+    r_grid_mean = np.insert(r_grid_mean,1., 0)
     
     return r_grid, r_grid_mean, a0,b0 
     
@@ -171,10 +172,10 @@ def get_power_spek_grid(power_spektra_list, Zusatz, radius_spaceing):
         means_of_cicular_grids_spek = []
         #need quadratic input thus x=y
         #print i[x/2.+0.5,x/2.+0.5]
-        print x
+        
         centervalue = i[x/2.+0.5,x/2.+0.5]
         four_center_pix_mean = np.mean(i[x/2.-1.:x/2.+1.,x/2.-1.:x/2.+1]) 
-        print i.shape, centervalue, four_center_pix_mean
+        
         for f, mask_ringshape in enumerate(masks_ringshape):  
             #print z,f 
             if f == 0:                
@@ -234,7 +235,7 @@ if __name__ == '__main__':
     
     #cube_data = restrict_velocities(cube_data)
     get_shape(cube_data)
-    
+    print "intro"
     
     #print "Data need a quadratic shape"
     #data = get_odd_shape(cube_data)
@@ -244,15 +245,15 @@ if __name__ == '__main__':
     ''' Build some subcubes '''
     
     #Cubes_4x4 = get_sub_cube(data, datei, cube_header)
-    
+    print "FFT"
     FFT_Power_spektra = get_power_spektra(data)
-    
+    print "powerspektrum"
     powerspektrum, rgrid_mean, masks = get_power_spek_grid(FFT_Power_spektra, "Whole_",32)
     
     #get_masks_saved(masks,rgrid_mean,"whole_")
          
     powerspektrum = np.asarray(powerspektrum)
-    
+    print "waterfall_plot"
     waterfall_plot(powerspektrum, rgrid_mean, datei,'_')
     
 
