@@ -144,6 +144,7 @@ def get_radius_gridding(length_of_frame, radius_spaceing):
     
     
 def get_power_spek_grid(power_spektra_list, Zusatz, radius_spaceing):
+
     import pylab as pl
     import copy
     import matplotlib.pyplot as plt
@@ -165,36 +166,29 @@ def get_power_spek_grid(power_spektra_list, Zusatz, radius_spaceing):
             np.logical_not(radius_mask_func(dists_sq,  r_grid_mean[idx]))
             ))
 
-    
     for z, i in enumerate(power_spektra_list):
         
         means_of_cicular_grids_spek = []
-        #print z
         #need quadratic input thus x=y
         #print i[x/2.+0.5,x/2.+0.5]
+        print x
         centervalue = i[x/2.+0.5,x/2.+0.5]
+        four_center_pix_mean = np.mean(i[x/2.-1.:x/2.+1.,x/2.-1.:x/2.+1]) 
+        print i.shape, centervalue, four_center_pix_mean
         for f, mask_ringshape in enumerate(masks_ringshape):  
             #print z,f 
-            if f == 0:
-                
-                means_of_cicular_grids_spek.append(centervalue)
+            if f == 0:                
+                means_of_cicular_grids_spek.append(four_center_pix_mean)
+            
             means_of_cicular_grids_spek.append(np.mean(i[mask_ringshape])) 
-                
-            #means_of_cicular_grids_spek.append(np.count_nonzero(aperture_sample))
-        #if z >=255 and z <330:
-            ##print len(r_grid_mean), len(means_of_cicular_grids_spek)
-            #plt.close()          
-            #plt.loglog(r_grid_mean,means_of_cicular_grids_spek,'xb')
-            #plt.savefig('/export/data1/cduesing/Figures/Problems/TEST/CheckPlot_'+Zusatz+datei.split('.')[0]+'_'+str(z)+'.png', dpi=300)   
-            ###plt.show()
-            #plt.clf()
-        
+ 
         means_of_cicular_grids_spek_all.append(means_of_cicular_grids_spek)
-        
     
     return means_of_cicular_grids_spek_all, r_grid_mean, masks_ringshape
 
+    
 def get_masks_saved(masks, rgrid_mean, word):
+    
     import pylab as pl
     for mask,rgrid in zip(masks,rgrid_mean):
         pl.close()          
@@ -239,52 +233,42 @@ if __name__ == '__main__':
     get_shape(cube_data)
     
     #cube_data = restrict_velocities(cube_data)
-    print "save the the cube"
     get_shape(cube_data)
     
     
     #print "Data need a quadratic shape"
-    data = get_odd_shape(cube_data)
+    #data = get_odd_shape(cube_data)
     #then could get quadratic !!!!!
-    #data = cube_data.copy()
-    #data = cube_data
-
-    get_shape(data)
-    #get_cube(cube_data, datei, cube_header, "RESHAPED")
-    mean_velocities = inspect(data)
-    #vis(mean_velocities)
-    
+    data = cube_data.copy()
+     
     ''' Build some subcubes '''
-    Cubes_4x4 = get_sub_cube(data, datei, cube_header)
-    #sub_data = np.asarray(Cubes_4x4)
-    #sub_data = np.asarray(sub_data)
+    
+    #Cubes_4x4 = get_sub_cube(data, datei, cube_header)
     
     FFT_Power_spektra = get_power_spektra(data)
-    #get_cube(FFT_Power_spektra, datei, cube_header, "POWERSPEK")
     
     powerspektrum, rgrid_mean, masks = get_power_spek_grid(FFT_Power_spektra, "Whole_",32)
     
-    get_masks_saved(masks,rgrid_mean,"whole_")
-        
-    
+    #get_masks_saved(masks,rgrid_mean,"whole_")
+         
     powerspektrum = np.asarray(powerspektrum)
-    #powerspektrum = powerspektrum.reshape(500.,127.)
     
     waterfall_plot(powerspektrum, rgrid_mean, datei,'_')
-    #vis(powerspektrum, "Powerspectra", r"Velocities     $\displaystyle (\frac{km}{s})$", "Waterfallplot_",datei) 
     
-    f = 1
-    for index, Cubus in enumerate(Cubes_4x4):
-        print Cubus.shape
-        Cubus = quadratic_shape(Cubus)
-        Cubus = get_odd_shape(Cubus)
-        FFT_Power_spektra_Cubus = get_power_spektra(Cubus)
-        Cubus_powerspektrum, Cubus_rgridding, Cubus_masks_ringshape = get_power_spek_grid(FFT_Power_spektra_Cubus,"Subcube_1_"+str(f), 16.)
-        Cubus_powerspektrum = np.asarray(Cubus_powerspektrum)
-        waterfall_plot(Cubus_powerspektrum, Cubus_rgridding, datei,"Sub_Sample_"+str(index)+"_" )
-        if f==1:
-            get_masks_saved(Cubus_masks_ringshape,Cubus_rgridding,"subcube_")
-        f+=1
+
+    
+    #f = 1
+    #for index, Cubus in enumerate(Cubes_4x4):
+        #print Cubus.shape
+        #Cubus = quadratic_shape(Cubus)
+        #Cubus = get_odd_shape(Cubus)
+        #FFT_Power_spektra_Cubus = get_power_spektra(Cubus)
+        #Cubus_powerspektrum, Cubus_rgridding, Cubus_masks_ringshape = get_power_spek_grid(FFT_Power_spektra_Cubus,"Subcube_1_"+str(f), 16.)
+        #Cubus_powerspektrum = np.asarray(Cubus_powerspektrum)
+        #waterfall_plot(Cubus_powerspektrum, Cubus_rgridding, datei,"Sub_Sample_"+str(index)+"_" )
+        #if f==1:
+            #get_masks_saved(Cubus_masks_ringshape,Cubus_rgridding,"subcube_")
+        #f+=1
     
  
  
