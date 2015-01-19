@@ -106,7 +106,7 @@ def get_circle_area_for_pix(coordinates, r):
     y_left = RadialEqu(r, x_min)
     y_right = RadialEqu(r, x_max)
     intersec = x_lower, x_upper, y_left, y_right
-
+    print intersec
     # Check for actual interceptionpoints between cicle and pixel
     #intersected == intersec_x_low, intersec_x_up, intersec_y_left, intersec_y_right
     intersected = get_intercections(borders, x_lower, x_upper, y_left, y_right)
@@ -115,9 +115,11 @@ def get_circle_area_for_pix(coordinates, r):
     # CASE 1 WHOLE PIXEL FILLED
     
     Area = np.zeros_like(x)
-    mask = np.sqrt(x_max ** 2 + y_max ** 2) <= r
-    Area[mask] = 1
+
+    max_mask = np.sqrt(x_max ** 2 + y_max ** 2) <= r
+    Area[max_mask] = 1
     
+    intersec_mask = (np.sqrt(x_max ** 2 + y_max ** 2) > r) & (np.sqrt(x_min ** 2 + y_min ** 2) < r)
     # CASE 2 BOTTOM LEFT CORNER
     #if intersected[0] == 1 and intersected[2] == 1:
         #Area = CASE2_bottom_left_corner(borders, x_lower, r)
@@ -125,33 +127,33 @@ def get_circle_area_for_pix(coordinates, r):
     def masked_borders(borders, mask):
         return tuple(a[mask] for a in borders)
     
-    mask = intersected[0] & intersected[2]
-    Area[mask] = CASE2_bottom_left_corner(
-        masked_borders(borders, mask), x_lower[mask], r
+    imask = intersected[0] & intersected[2] & intersec_mask
+    Area[imask] = CASE2_bottom_left_corner(
+        masked_borders(borders, imask), x_lower[imask], r
         )
 
     # CASE 3 TOP RIGHT CORNER
     #if intersected[1] == 1 and intersected[3] == 1:
         #Area = CASE3_upper_right_corner(borders, x_upper, r)
-    mask = intersected[1] & intersected[3]
-    Area[mask] = CASE3_upper_right_corner(
-        masked_borders(borders, mask), x_upper[mask], r
+    imask = intersected[1] & intersected[3] & intersec_mask
+    Area[imask] = CASE3_upper_right_corner(
+        masked_borders(borders, imask), x_upper[imask], r
         )
 
     # CASE 4 BOTH Y BORDERS ARE INTERCEPTED
     #if intersected[2] == 1 and intersected[3] == 1:
         #Area = CASE4_both_y_borders(borders, y_left, y_right, r)
-    mask = intersected[2] & intersected[3]
-    Area[mask] = CASE4_both_y_borders(
-        masked_borders(borders, mask), y_left[mask], y_right[mask], r
+    imask = intersected[2] & intersected[3] & intersec_mask
+    Area[imask] = CASE4_both_y_borders(
+        masked_borders(borders, imask), y_left[imask], y_right[imask], r
         )
 
     # CASE 5 BOTH X BORDERS ARE INTERCEPTED
     #if intersected[0] == 1 and intersected[1] == 1:
         #Area = CASE5_both_x_borders(borders, x_lower, x_upper, r)
-    mask = intersected[0] & intersected[1]
-    Area[mask] = CASE5_both_x_borders(
-        masked_borders(borders, mask), x_lower[mask], x_upper[mask], r
+    imask = intersected[0] & intersected[1] & intersec_mask
+    Area[imask] = CASE5_both_x_borders(
+        masked_borders(borders, imask), x_lower[imask], x_upper[imask], r
         )
 
     ## CASE 0 WHOLE PIXEL NOT FILLED
@@ -253,8 +255,9 @@ def main2():
         plt.show()
     
     # circle smaller than lower left edge
-    px, py = 3.5, 5.5
-    r = np.sqrt((px - 0.5) ** 2 + (py - 0.5) ** 2) - 0.2
+    px, py = 2.5, 2.5
+    #r = np.sqrt((px - 0.5) ** 2 + (py - 0.5) ** 2) - 0.2
+    r=1.06
     plot_with_area(px, py, r)
 
     # circle hits lower left edge
@@ -348,11 +351,11 @@ def main2():
 
 def main3():
     px, py = np.meshgrid(
-        np.arange(40) + 0.5,
-        np.arange(40) + 0.5,
+        np.arange(185) + 0.5,
+        np.arange(185) + 0.5,
         )
     
-    r = np.pi * 10
+    r = 1.06
     A, intersec, intersected = get_circle_area_for_pix((px, py), r)
     
     print '\n'.join(map(
@@ -365,9 +368,10 @@ def main3():
     plt.show()
     
     print np.sum(A)
-
+    print A.shape
+    print A
     
     
 if __name__ == '__main__':
     #main()
-    main3()
+    main2()

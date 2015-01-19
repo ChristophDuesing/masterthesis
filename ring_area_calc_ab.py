@@ -110,13 +110,8 @@ def get_circle_area_for_pix(coordinates, r):
     intersected = get_intercections(borders, x_lower, x_upper, y_left, y_right)
     # print intersec, intersected
 
-    # CASE 0 WHOLE PIXEL NOT FILLED
-    if np.sqrt(x_min ** 2 + y_min ** 2) <= r:
-        Area = 0
-    
-    
     # CASE 1 WHOLE PIXEL FILLED
-    if np.sqrt(x_min ** 2 + y_max ** 2) <= r:
+    if np.sqrt(x_max ** 2 + y_max ** 2) <= r:
         Area = 1
     else:
         Area = 0
@@ -136,6 +131,11 @@ def get_circle_area_for_pix(coordinates, r):
     # CASE 5 BOTH X BORDERS ARE INTERCEPTED
     if intersected[0] == 1 and intersected[1] == 1:
         Area = CASE5_both_x_borders(borders, x_lower, x_upper, r)
+
+    # CASE 0 WHOLE PIXEL NOT FILLED
+    if np.sqrt(x_min ** 2 + y_min ** 2) == r:
+        Area = 0
+        print 'LEFT BOTTOM CORNER HIT '        
 
     return Area, intersec, intersected
 
