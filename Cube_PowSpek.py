@@ -3,6 +3,7 @@
 import numpy as np
 import pyfits as pf
 import copy
+from ring_area_calc_many import get_circle_area_for_pix
     
     
 def open_fits(fit):
@@ -24,11 +25,10 @@ def convert_spec_channel_to_velocity():
     from kapteyn import wcs
     print proj_spec_1d.toworld((z,))[0] / 1000. 
     
-
 def get_shape(fit):
     print fit.shape  
-    
-    
+   
+   
 def quadratic_shape(fit):
     z,y,x = fit.shape
         # For galactic coordinates in 20 times 20 degrees every cube is based on :
@@ -49,32 +49,6 @@ def quadratic_shape(fit):
     return fit_new
 
     
-def get_odd_shape(datacube):
-    z,y,x = datacube.shape
-    if y != 2 or x!=2:
-        print "Even shape, no pixel in center"
-        print "Will be reshaped"
-        if y != 2:
-            datacube_new = datacube[:,:y-1,:]
-        if x!=2:
-            datacube_new = datacube_new[:,:,:x-1]
-    return datacube_new
-
-def restrict_velocities(datacube):
-    z,y,x = datacube.shape
-    datacube = datacube[222.5:722.5,: ,: ]
-    return datacube
-    
-    
-def inspect(datacube):    
-    l = []
-    for i in range(len(datacube)):
-        planemean = np.mean(datacube[i])
-        l.append(planemean)
-    return l 
-
-
-    
 def get_power_spektra(datacube):
     power_spektra = [] 
     for i in datacube:
@@ -84,6 +58,7 @@ def get_power_spektra(datacube):
         power_spektra.append(pow_spek)
     return power_spektra 
 
+    
 def get_cube(imgs, datei, cube_header, name):
     fits = pf.PrimaryHDU(np.array(imgs), header=cube_header)
     fits.writeto(datei.split('.')[0]+"_"+name+".fits",clobber=True)
@@ -103,14 +78,13 @@ def get_sub_cube(cube, datei, header):
             #print datacube
             get_cube(datacube, datei, header, "SUB_SAMPLE_"+str(elem_i+1)+"_x_"+str(elem_j+1) )
             Small_Cubes.append(datacube)
-            
+           
     return Small_Cubes
        
     
 def vis2d(a):
     import pylab 
     import matplotlib.pyplot as plt
-    
     
     plt.close()
     fig = plt.figure(figsize=(15, 5))
@@ -121,7 +95,6 @@ def vis2d(a):
     imdict = dict(interpolation='nearest', origin='lower')
     datas = [a]
     axes = [ax1]
-
     for d, ax in zip(datas, axes):
         ax.set_aspect('equal')
         ax.imshow(d, **imdict)
@@ -134,14 +107,18 @@ def vis2d(a):
 def get_radius_gridding(length_of_frame, radius_spaceing):
     x = length_of_frame    
     r_min, r_max, a0,b0 =  1, x/2.,  x/2.,x/2. 
-    r_grid = np.logspace(np.log10(r_min), np.log10(r_max),radius_spaceing)   
     
+    r_grid = np.logspace(np.log10(r_min), np.log10(r_max),radius_spaceing)       
     #r_grid = np.linspace(r_min, r_max, radius_spaceing)
+    
     r_grid_mean = 0.5 * (r_grid[1:] + r_grid[:-1])
     print r_grid_mean
     r_grid_mean = np.insert(r_grid_mean,1., 0)
     
     return r_grid, r_grid_mean, a0,b0 
+
+
+    
     
     
 def get_power_spek_grid(power_spektra_list, Zusatz, radius_spaceing):
@@ -153,20 +130,39 @@ def get_power_spek_grid(power_spektra_list, Zusatz, radius_spaceing):
     means_of_cicular_grids_spek_all = []
     
     x = len(power_spektra_list[0])
-    a, b = np.meshgrid(np.linspace(0,x,x) , np.linspace(0,x,x))
+    #a, b = np.meshgrid(np.linspace(0,x,x) , np.linspace(0,x,x))
     
     r_grid, r_grid_mean, a0,b0 = get_radius_gridding(x,radius_spaceing)
-    dists_sq = (a-a0)**2 + (b-b0)**2
+
+    #get_cicular masks()
+    #dists_sq = (a-a0)**2 + (b-b0)**2
     
-    radius_mask_func = lambda dists_sq, r: dists_sq <= r**2
+    #radius_mask_func = lambda dists_sq, r: dists_sq <= r**2
 
-    masks_ringshape = []
-    for idx, r in enumerate(r_grid[:-1]):  
-        masks_ringshape.append(np.logical_and(
-            radius_mask_func(dists_sq,  r_grid_mean[idx+1]),
-            np.logical_not(radius_mask_func(dists_sq,  r_grid_mean[idx]))
-            ))
-
+    #masks_ringshape = []
+    #for idx, r in enumerate(r_grid[:-1]):  
+        #masks_ringshape.append(np.logical_and(
+            #radius_mask_func(dists_sq,  r_grid_mean[idx+1]),
+            #np.logical_not(radius_mask_func(dists_sq,  r_grid_mean[idx]))
+            #))
+    px, py = np.meshgrid(
+        np.arange(x) + 0.5,
+        np.arange(x) + 0.5,
+        )
+    
+    for idx, r in enumerate(r_grid[:-1]): 
+        A_up, intersec_up, intersected_up = get_circle_area_for_pix((abs(px), abs(py)), r_grid_mean[idx+1])
+        A_low, intersec_low, intersected_low = get_circle_area_for_pix((abs(px), abs(py)), r_grid_mean[idx])
+        print A_up
+        print A_low
+        delta_A = A_up - A_low
+        print delta_A
+        masks_ringshape.append(A_up-A_low)
+        
+    print masks_ringshape
+    
+    
+            
     for z, i in enumerate(power_spektra_list):
         
         means_of_cicular_grids_spek = []
@@ -219,40 +215,28 @@ def waterfall_plot(f, rgridding, datei, attachment):
     #pl.show()
     
     
-    
-    
 if __name__ == '__main__':
-    
-#for datei in Cubes_4x4:   
-    
-    #datei = input("Need some input for fitting \n")
+
     datei = ("CAR_NorSky30-50_80.fits")
     
     cube = open_fits(datei)
     cube_header = cube.header
     cube_data = cube.data
     get_shape(cube_data)
+
     
-    #cube_data = restrict_velocities(cube_data)
-    get_shape(cube_data)
     print "intro"
     
-    #print "Data need a quadratic shape"
-    #data = get_odd_shape(cube_data)
-    #then could get quadratic !!!!!
     data = cube_data.copy()
-     
-    ''' Build some subcubes '''
-    
     #Cubes_4x4 = get_sub_cube(data, datei, cube_header)
+    
     print "FFT"
     FFT_Power_spektra = get_power_spektra(data)
+    
     print "powerspektrum"
     powerspektrum, rgrid_mean, masks = get_power_spek_grid(FFT_Power_spektra, "Whole_",32)
-    
-    #get_masks_saved(masks,rgrid_mean,"whole_")
-         
     powerspektrum = np.asarray(powerspektrum)
+    
     print "waterfall_plot"
     waterfall_plot(powerspektrum, rgrid_mean, datei,'_')
     
