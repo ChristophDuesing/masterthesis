@@ -34,7 +34,7 @@ def Antiderivative(a_min, a_max, Radius):
     return A
 
 
-def RadialEqu(Radius, coord):
+def RadialEqu(Radius , coord):
     return np.sqrt(abs(Radius ** 2 - coord ** 2))
 
 
@@ -101,65 +101,67 @@ def get_circle_area_for_pix(coordinates, r):
     borders = x_min, x_max, y_min, y_max
 
     # Check for interceptionpoints between circle and axis
+    
     x_lower = RadialEqu(r, y_min)
     x_upper = RadialEqu(r, y_max)
     y_left = RadialEqu(r, x_min)
     y_right = RadialEqu(r, x_max)
     intersec = x_lower, x_upper, y_left, y_right
-    print intersec
+
     # Check for actual interceptionpoints between cicle and pixel
     #intersected == intersec_x_low, intersec_x_up, intersec_y_left, intersec_y_right
     intersected = get_intercections(borders, x_lower, x_upper, y_left, y_right)
     # print intersec, intersected
 
-    # CASE 1 WHOLE PIXEL FILLED
-    
+    '''
+    CASE 1  
+    The whole pixel lays within the circle    
+    '''
     Area = np.zeros_like(x)
-
     max_mask = np.sqrt(x_max ** 2 + y_max ** 2) <= r
     Area[max_mask] = 1
-    
     intersec_mask = (np.sqrt(x_max ** 2 + y_max ** 2) > r) & (np.sqrt(x_min ** 2 + y_min ** 2) < r)
-    # CASE 2 BOTTOM LEFT CORNER
-    #if intersected[0] == 1 and intersected[2] == 1:
-        #Area = CASE2_bottom_left_corner(borders, x_lower, r)
     
+    '''
+    CASE 2  
+    The circle intersects with the left and bottom border of the pixel    
+    '''
     def masked_borders(borders, mask):
         return tuple(a[mask] for a in borders)
-    
+        
     imask = intersected[0] & intersected[2] & intersec_mask
     Area[imask] = CASE2_bottom_left_corner(
         masked_borders(borders, imask), x_lower[imask], r
         )
 
-    # CASE 3 TOP RIGHT CORNER
-    #if intersected[1] == 1 and intersected[3] == 1:
-        #Area = CASE3_upper_right_corner(borders, x_upper, r)
+    '''
+    CASE 3 
+    The circle intersects with the right and top border of the pixel    
+    '''
     imask = intersected[1] & intersected[3] & intersec_mask
     Area[imask] = CASE3_upper_right_corner(
         masked_borders(borders, imask), x_upper[imask], r
         )
 
-    # CASE 4 BOTH Y BORDERS ARE INTERCEPTED
-    #if intersected[2] == 1 and intersected[3] == 1:
-        #Area = CASE4_both_y_borders(borders, y_left, y_right, r)
-    imask = intersected[2] & intersected[3] & intersec_mask
-    Area[imask] = CASE4_both_y_borders(
-        masked_borders(borders, imask), y_left[imask], y_right[imask], r
-        )
+    '''
+    CASE 4 
+    The circle intersects with left and right border of the pixel    
+    '''
+    if np.mean(Area)==0:
+            
+        imask = intersected[2] & intersected[3] & intersec_mask
+        Area[imask] = CASE4_both_y_borders(
+            masked_borders(borders, imask), y_left[imask], y_right[imask], r
+            )
 
-    # CASE 5 BOTH X BORDERS ARE INTERCEPTED
-    #if intersected[0] == 1 and intersected[1] == 1:
-        #Area = CASE5_both_x_borders(borders, x_lower, x_upper, r)
+    '''
+    CASE 5  
+    The circle intersects with the top and bottom border of the pixel    
+    '''
     imask = intersected[0] & intersected[1] & intersec_mask
     Area[imask] = CASE5_both_x_borders(
         masked_borders(borders, imask), x_lower[imask], x_upper[imask], r
         )
-
-    ## CASE 0 WHOLE PIXEL NOT FILLED
-    #if np.sqrt(x_min ** 2 + y_min ** 2) == r:
-        #Area = 0
-        #print 'LEFT BOTTOM CORNER HIT '        
 
     return Area, intersec, intersected
 
@@ -237,6 +239,7 @@ def main2():
         A, intersec, intersected = get_circle_area_for_pix(
             (np.atleast_1d(px), np.atleast_1d(py)), r
             )
+        print intersec
 
         plt.close()
         plt.plot(*rect_stroke, c='k', ls='-')
@@ -255,98 +258,98 @@ def main2():
         plt.show()
     
     # circle smaller than lower left edge
-    px, py = 2.5, 2.5
+    px, py = 75.5, 8.5
     #r = np.sqrt((px - 0.5) ** 2 + (py - 0.5) ** 2) - 0.2
-    r=1.06
+    r=69.57258065
     plot_with_area(px, py, r)
 
     # circle hits lower left edge
-    px, py = 3.5, 5.5
-    r = np.sqrt((px - 0.5) ** 2 + (py - 0.5) ** 2)
+    px, py = 75.5, 8.5
+    r = 75.49193548
     plot_with_area(px, py, r)  # <- wrong as well ! 
 
-    # circle larger than lower left edge
-    px, py = 3.5, 5.5
-    r = np.sqrt((px - 0.5) ** 2 + (py - 0.5) ** 2) + 0.2
-    plot_with_area(px, py, r)
+    ## circle larger than lower left edge
+    #px, py = 3.5, 5.5
+    #r = np.sqrt((px - 0.5) ** 2 + (py - 0.5) ** 2) + 0.2
+    #plot_with_area(px, py, r)
 
-    # circle hits lower right edge
-    px, py = 3.5, 5.5
-    r = np.sqrt((px + 0.5) ** 2 + (py - 0.5) ** 2)
-    plot_with_area(px, py, r)
+    ## circle hits lower right edge
+    #px, py = 3.5, 5.5
+    #r = np.sqrt((px + 0.5) ** 2 + (py - 0.5) ** 2)
+    #plot_with_area(px, py, r)
 
-    # circle larger than lower right edge
-    px, py = 3.5, 5.5
-    r = np.sqrt((px + 0.5) ** 2 + (py - 0.5) ** 2) + 0.2
-    plot_with_area(px, py, r)
+    ## circle larger than lower right edge
+    #px, py = 3.5, 5.5
+    #r = np.sqrt((px + 0.5) ** 2 + (py - 0.5) ** 2) + 0.2
+    #plot_with_area(px, py, r)
 
-    # circle hits upper left edge
-    px, py = 3.5, 5.5
-    r = np.sqrt((px - 0.5) ** 2 + (py + 0.5) ** 2)
-    plot_with_area(px, py, r)
+    ## circle hits upper left edge
+    #px, py = 3.5, 5.5
+    #r = np.sqrt((px - 0.5) ** 2 + (py + 0.5) ** 2)
+    #plot_with_area(px, py, r)
 
-    # circle larger than upper left edge
-    px, py = 3.5, 5.5
-    r = np.sqrt((px - 0.5) ** 2 + (py + 0.5) ** 2) + 0.2
-    plot_with_area(px, py, r)  # <-- wrong CORRECTED ! 
+    ## circle larger than upper left edge
+    #px, py = 3.5, 5.5
+    #r = np.sqrt((px - 0.5) ** 2 + (py + 0.5) ** 2) + 0.2
+    #plot_with_area(px, py, r)  # <-- wrong CORRECTED ! 
 
-    # circle hits upper right edge
-    px, py = 3.5, 5.5
-    r = np.sqrt((px + 0.5) ** 2 + (py + 0.5) ** 2)
-    plot_with_area(px, py, r)  # <-- wrong SEEMS RIGHT ! 
+    ## circle hits upper right edge
+    #px, py = 3.5, 5.5
+    #r = np.sqrt((px + 0.5) ** 2 + (py + 0.5) ** 2)
+    #plot_with_area(px, py, r)  # <-- wrong SEEMS RIGHT ! 
 
-    # circle larger than upper right edge
-    px, py = 3.5, 5.5
-    r = np.sqrt((px + 0.5) ** 2 + (py + 0.5) ** 2) + 0.2
-    plot_with_area(px, py, r)
-
-
+    ## circle larger than upper right edge
+    #px, py = 3.5, 5.5
+    #r = np.sqrt((px + 0.5) ** 2 + (py + 0.5) ** 2) + 0.2
+    #plot_with_area(px, py, r)
 
 
-    # circle smaller than lower left edge
-    px, py = 6.5, 5.5
-    r = np.sqrt((px - 0.5) ** 2 + (py - 0.5) ** 2) - 0.2
-    plot_with_area(px, py, r)
 
-    # circle hits lower left edge
-    px, py = 6.5, 5.5
-    r = np.sqrt((px - 0.5) ** 2 + (py - 0.5) ** 2)
-    plot_with_area(px, py, r)
 
-    # circle larger than lower left edge
-    px, py = 6.5, 5.5
-    r = np.sqrt((px - 0.5) ** 2 + (py - 0.5) ** 2) + 0.2
-    plot_with_area(px, py, r)
+    ## circle smaller than lower left edge
+    #px, py = 6.5, 5.5
+    #r = np.sqrt((px - 0.5) ** 2 + (py - 0.5) ** 2) - 0.2
+    #plot_with_area(px, py, r)
 
-    # circle hits lower right edge
-    px, py = 6.5, 5.5
-    r = np.sqrt((px + 0.5) ** 2 + (py - 0.5) ** 2)
-    plot_with_area(px, py, r)  
+    ## circle hits lower left edge
+    #px, py = 6.5, 5.5
+    #r = np.sqrt((px - 0.5) ** 2 + (py - 0.5) ** 2)
+    #plot_with_area(px, py, r)
 
-    # circle larger than lower right edge
-    px, py = 6.5, 5.5
-    r = np.sqrt((px + 0.5) ** 2 + (py - 0.5) ** 2) + 0.2
-    plot_with_area(px, py, r)  # <-- wrong SEEMS ALSO RIGHT 
+    ## circle larger than lower left edge
+    #px, py = 6.5, 5.5
+    #r = np.sqrt((px - 0.5) ** 2 + (py - 0.5) ** 2) + 0.2
+    #plot_with_area(px, py, r)
 
-    # circle hits upper left edge
-    px, py = 6.5, 5.5
-    r = np.sqrt((px - 0.5) ** 2 + (py + 0.5) ** 2)
-    plot_with_area(px, py, r)
+    ## circle hits lower right edge
+    #px, py = 6.5, 5.5
+    #r = np.sqrt((px + 0.5) ** 2 + (py - 0.5) ** 2)
+    #plot_with_area(px, py, r)  
 
-    # circle larger than upper left edge
-    px, py = 6.5, 5.5
-    r = np.sqrt((px - 0.5) ** 2 + (py + 0.5) ** 2) + 0.2
-    plot_with_area(px, py, r)  # <-- wrong CORRECTED
+    ## circle larger than lower right edge
+    #px, py = 6.5, 5.5
+    #r = np.sqrt((px + 0.5) ** 2 + (py - 0.5) ** 2) + 0.2
+    #plot_with_area(px, py, r)  # <-- wrong SEEMS ALSO RIGHT 
 
-    # circle hits upper right edge
-    px, py = 6.5, 5.5
-    r = np.sqrt((px + 0.5) ** 2 + (py + 0.5) ** 2)
-    plot_with_area(px, py, r)  # <-- wrong
+    ## circle hits upper left edge
+    #px, py = 6.5, 5.5
+    #r = np.sqrt((px - 0.5) ** 2 + (py + 0.5) ** 2)
+    #plot_with_area(px, py, r)
 
-    # circle larger than upper right edge
-    px, py = 6.5, 5.5
-    r = np.sqrt((px + 0.5) ** 2 + (py + 0.5) ** 2) + 0.2
-    plot_with_area(px, py, r)
+    ## circle larger than upper left edge
+    #px, py = 6.5, 5.5
+    #r = np.sqrt((px - 0.5) ** 2 + (py + 0.5) ** 2) + 0.2
+    #plot_with_area(px, py, r)  # <-- wrong CORRECTED
+
+    ## circle hits upper right edge
+    #px, py = 6.5, 5.5
+    #r = np.sqrt((px + 0.5) ** 2 + (py + 0.5) ** 2)
+    #plot_with_area(px, py, r)  # <-- wrong
+
+    ## circle larger than upper right edge
+    #px, py = 6.5, 5.5
+    #r = np.sqrt((px + 0.5) ** 2 + (py + 0.5) ** 2) + 0.2
+    #plot_with_area(px, py, r)
 
 
 def main3():
@@ -355,9 +358,13 @@ def main3():
         np.arange(185) + 0.5,
         )
     
-    r = 1.06
-    A, intersec, intersected = get_circle_area_for_pix((px, py), r)
+    r1 = 69.57258065
+    r2 = 75.49193548
     
+    A1, intersec1, intersected1 = get_circle_area_for_pix((px, py), r1)
+    A2, intersec2, intersected2 = get_circle_area_for_pix((px, py), r2)
+    
+    A =A2-A1 
     print '\n'.join(map(
         lambda a: '{:.4f} {:.4f} {:.4f}'.format(*a),
         zip(px.flatten(), py.flatten(), A.flatten())  #, intersec #, intersected
@@ -370,7 +377,13 @@ def main3():
     print np.sum(A)
     print A.shape
     print A
+    print np.max(A)
     
+    # circle larger than upper right edge
+    px, py = 75.5, 8.5
+    r = np.sqrt((px + 0.5) ** 2 + (py + 0.5) ** 2)
+    plot_with_area(px, py, r)
+
     
 if __name__ == '__main__':
     #main()
