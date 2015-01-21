@@ -8,8 +8,8 @@ from ring_area_calc_many import get_circle_area_for_pix
 
 def main3():
     px, py = np.meshgrid(
-        np.arange(40) + 0.5,
-        np.arange(40) + 0.5,
+        np.arange(185) + 0.5,
+        np.arange(185) + 0.5,
         )
     
     r = np.pi * 10
