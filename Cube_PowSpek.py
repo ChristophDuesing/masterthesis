@@ -100,7 +100,7 @@ def vis2d(a):
         ax.imshow(d, **imdict)
         im = ax.imshow(d, **imdict)
         pylab.colorbar(im, ax=ax , orientation='horizontal')
-    pylab.savefig('/export/data1/cduesing/Figures/Problems/TEST/Test_Picture.png')   
+    #pylab.savefig('/export/data1/cduesing/Figures/Problems/TEST/Test_Picture.png')   
     plt.show()
 
     
@@ -108,22 +108,17 @@ def get_radius_gridding(length_of_frame, radius_spaceing):
     x = length_of_frame    
     r_min, r_max, a0,b0 =  1.5, x/2.,  x/2.,x/2. 
     
-    #r_grid = np.logspace(np.log10(r_min), np.log10(r_max),radius_spaceing)       
-    r_grid = np.linspace(r_min, r_max, radius_spaceing)
-    r_grid_mean = []
-    r_grid_mean.append(0.)   
-    r_grid_mean.append(0.5 * (r_grid[1:] + r_grid[:-1]))
-    print r_grid_mean
+    r_grid = np.logspace(np.log10(r_min), np.log10(r_max),radius_spaceing)       
+    #r_grid = np.linspace(r_min, r_max, radius_spaceing)
+
     r_grid_mean = []
     r_grid_mean = 0.5 * (r_grid[1:] + r_grid[:-1])
     print r_grid_mean
-    r_grid_mean = np.insert(r_grid_mean,0,np.sqrt(2) )
+    #r_grid_mean = np.insert(r_grid_mean,0,np.sqrt(2) )
+    r_grid_mean = np.insert(r_grid_mean,0,np.log10(np.sqrt(2)) )
     print r_grid_mean
     
     return r_grid, r_grid_mean, a0,b0 
-    
-
-    
     
     
 def get_power_spek_grid(power_spektra_list, radius_spaceing):
@@ -147,16 +142,16 @@ def get_power_spek_grid(power_spektra_list, radius_spaceing):
 
     
     for idx, r in enumerate(r_grid[:-1]): 
-    if idx == 0:        
-            Area_ringshape.append(get_circle_area_for_pix((px, py),r_grid_mean[idx])[0])
-    if idx > 0 :
+        if idx == 0:        
+                Area_ringshape.append(get_circle_area_for_pix((px, py),r_grid_mean[idx])[0])
+        if idx > 0 :
             A_up, intersec_up, intersected_up = get_circle_area_for_pix((px, py), r_grid_mean[idx+1])
             A_low, intersec_low, intersected_low = get_circle_area_for_pix((px, py), r_grid_mean[idx])
 
             delta_A = A_up - A_low
         
             Area_ringshape.append(delta_A)
-        '''
+            '''
             plt.close()
             plt.scatter(px, py, c=A_up)
             plt.show()
@@ -167,17 +162,16 @@ def get_power_spek_grid(power_spektra_list, radius_spaceing):
 
             plt.close()
             plt.scatter(px, py, c=delta_A)
-        plt.show()
-            '''
-
+            plt.show()
+        '''
+    
             
     for z, i in enumerate(power_spektra_list):
-        
         means_of_cicular_grids_spek = []
         # Warning first y then x and y goes from up to down and x from left to right 
-    lo = i[:x/2,  :x/2.]
-    lo = np.fliplr(lo)
-
+        lo = i[:x/2,  :x/2.]
+        lo = np.fliplr(lo)
+        
         lu = i[x/2.: , :x/2.]
         lu = np.fliplr(np.flipud(lu))
 
@@ -185,18 +179,35 @@ def get_power_spek_grid(power_spektra_list, radius_spaceing):
 
         ru = i[ x/2.:, x/2.:]
         ru = np.flipud(ru)
-    four_center_pix_mean = np.mean(i[x/2.-1.:x/2.+1.,x/2.-1.:x/2.+1]) 
+        #four_center_pix_mean = np.mean(i[x/2.-1.:x/2.+1.,x/2.-1.:x/2.+1]) 
         
         for f, Area in enumerate(Area_ringshape):  
-
-            if f == 0:                
-                means_of_cicular_grids_spek.append(four_center_pix_mean)
-            else:
-                
+            #if f == 0:                
+                #means_of_cicular_grids_spek.append(np.sum(Area*i)/np.count_nonzero(Area))
+            #else:  
                 means_of_cicular_grids_spek.append(np.sum(ro*Area)/np.count_nonzero(ro*Area) + np.sum(ru*Area)/np.count_nonzero(ru*Area) +np.sum(lo*Area)/np.count_nonzero(lo*Area) + np.sum(lu*Area)/np.count_nonzero(lu*Area))
-                
+                print means_of_cicular_grids_spek
+                if f> 10:
+                   check = (ro*Area,ru*Area,lo*Area,lu*Area )
+                   
+                   #for z in check:
+
+                       #print f 
+                       #print np.max(z)
+
+                       #plt.close()
+                       #plt.figure()
+                       #plt.imshow(i,interpolation='nearest',origin='lower')
+                       #plt.show()
+                       
+                       #plt.close()
+                       #plt.figure()
+                       #plt.imshow(z,interpolation='nearest',origin='lower')
+                       #plt.show()
+                   
         means_of_cicular_grids_spek_all.append(means_of_cicular_grids_spek)
-    
+    #print Area_ringshape
+    #print lu.shape , lo.shape, ro.shape, ru.shape
     return means_of_cicular_grids_spek_all, r_grid_mean, Area_ringshape
 
     
@@ -222,7 +233,9 @@ def waterfall_plot(f, rgridding, datei, attachment):
     pl.ylabel(r"Velocities     $\displaystyle\frac{\text{km}}{\text{s}}$")
     #pl.imshow(f, interpolation='nearest',  cmap='cubehelix')
     #pl.imshow(np.log10(f), extent=(np.log10(0.1), np.log10(rgridding[-1]), 311, -311),interpolation='nearest', cmap='cubehelix')
-    pl.imshow(np.log10(f), extent=(np.log10(rgridding[0]), np.log10(rgridding[-1]), -311, 311),interpolation='nearest', cmap='cubehelix')
+    #pl.imshow(np.log10(f), extent=(np.log10(rgridding[0]), np.log10(rgridding[-1]), -311, 311),origin='lower',interpolation='nearest', cmap='cubehelix')
+    pl.imshow(np.log10(f), extent=(np.log10(rgridding[0]), np.log10(rgridding[-1]), -311, 311),origin='lower',interpolation='nearest', cmap='cubehelix')
+  
     cbar = pl.colorbar()
     cbar.set_label(r'$\log_{10}$ Power $P_k$', labelpad=-40, y=0.5)
     pl.gca().set_aspect('auto')
