@@ -43,7 +43,8 @@ def quadratic_shape(fit):
         max_x, min_x = (x-a/2), (a/2)
         fit_new = fit[:,:,min_y:max_y]# [z,y,x]!!    
         print "x was reshaped"
-    
+    if y==x:
+        fit_new = fit 
     return fit_new
     
 
@@ -65,7 +66,7 @@ def inspect(datacube):
 def get_power_spektra(datacube):
     power_spektra = [] 
     for i in datacube:
-        fft_spek = np.fft.fft2(i, s=1024.)
+        fft_spek = np.fft.fft2(i)
         fft_spek = np.fft.fftshift(fft_spek)
         pow_spek = (np.abs(fft_spek)**2)/len(fft_spek)
         power_spektra.append(pow_spek)
@@ -127,7 +128,7 @@ def get_power_spek_grid(power_spektra_list):
     
     x = len(power_spektra_list[0])
     r_min, r_max, a0,b0 =  1, x/2.,  x/2.,x/2. 
-    r_grid = np.logspace(np.log10(r_min), np.log10(r_max),16)
+    r_grid = np.logspace(np.log10(r_min), np.log10(r_max),64)
     #find out gridding here ! Check with the results of 1024 from yesterday mate ;) 
     #r_grid = np.linspace(r_min, r_max,256)
     
@@ -188,21 +189,22 @@ def get_power_spek_grid(power_spektra_list):
             
             ##print pow_spek_grid
             ##print np.count_nonzero(aperture_sample)
-            #means_of_cicular_grids_spek.append(np.sum(pow_spek_grid)/np.count_nonzero(aperture_sample))
+            means_of_cicular_grids_spek.append(np.sum(i[mask_ringshape])/np.count_nonzero(i[mask_ringshape]))
             
-            means_of_cicular_grids_spek.append(np.mean(i[mask_ringshape])) #Warum klappt es nicht ????????
+            #means_of_cicular_grids_spek.append(np.mean(i[mask_ringshape])) #Warum klappt es nicht ????????
             #means_of_cicular_grids_spek.append(np.count_nonzero(aperture_sample))
         
        
-        
-        plt.close()   
-        ##plt.plot(r_grid_mean,means_of_cicular_grids_spek,'xr')
-        ##print means_of_cicular_grids_spek
-        
-        plt.loglog(r_grid_mean,means_of_cicular_grids_spek,'xb')
-        plt.savefig('/export/data1/cduesing/Figures/Spektra/NEW_LOG_ChangedFFT_'+datei.split('.')[0]+'_'+str(z)+'.png', dpi=300)   
-        #plt.show()
-        #plt.clf()
+        if z >290 and z <321:
+                
+            plt.close()   
+            ##plt.plot(r_grid_mean,means_of_cicular_grids_spek,'xr')
+            ##print means_of_cicular_grids_spek
+            
+            plt.loglog(10**(r_grid_mean),means_of_cicular_grids_spek,'xb')
+            plt.savefig('/export/data1/cduesing/Figures/Spektra/PS_'+datei.split('.')[0]+'_'+str(z)+'.png', dpi=300)   
+            #plt.show()
+            #plt.clf()
         means_of_cicular_grids_spek_all.append(means_of_cicular_grids_spek)
         
     
@@ -218,10 +220,10 @@ def waterfall_plot(f, rgridding, datei, attachment):
     pl.rc('font', family='serif')
     pl.xlabel(r"Radii $|k|$")
     pl.ylabel(r"Velocities     $\displaystyle\frac{\text{km}}{\text{s}}$")
-    pl.imshow(np.log10(f), extent=(rgridding[0], rgridding[1], -400, 400), cmap='cubehelix')
+    pl.imshow(np.log10(f), extent=(np.log10(rgridding[0]), np.log10(rgridding[1]), -400, 400), interpolation='nearest', origin='lower' ,cmap='cubehelix')
     pl.colorbar()
     pl.gca().set_aspect('auto')
-    pl.savefig('/export/data1/cduesing/Figures/Spektra/Waterfallplot_'+attachment+datei.split('.')[0]+'.png', dpi=300)
+    pl.savefig('/export/data1/cduesing/Figures/Spektra/WP_new'+attachment+datei.split('.')[0]+'.png', dpi=300)
     #pl.show()
     
     
@@ -232,7 +234,7 @@ if __name__ == '__main__':
 #for datei in Cubes_4x4:   
     
     #datei = input("Need some input for fitting \n")
-    datei = ("NorSky30-50_80.fits")
+    datei = ("CAR_NorSky30-50_80.fits")
     
     cube = open_fits(datei)
     cube_header = cube.header
@@ -268,11 +270,11 @@ if __name__ == '__main__':
     #vis(powerspektrum, "Powerspectra", r"Velocities     $\displaystyle (\frac{km}{s})$", "Waterfallplot_",datei) 
     
     
-    for index, Cubus in enumerate(Cubes_4x4):
-        FFT_Power_spektra = get_power_spektra(Cubus)
-        powerspektrum, rgridding = get_power_spek_grid(FFT_Power_spektra)
-        powerspektrum = np.asarray(powerspektrum)
-        waterfall_plot(powerspektrum, rgridding, datei,"Sub_Sample_"+str(index)+"_" )
+    #for index, Cubus in enumerate(Cubes_4x4):
+        #FFT_Power_spektra = get_power_spektra(Cubus)
+        #powerspektrum, rgridding = get_power_spek_grid(FFT_Power_spektra)
+        #powerspektrum = np.asarray(powerspektrum)
+        #waterfall_plot(powerspektrum, rgridding, datei,"Sub_Sample_"+str(index)+"_" )
     
  
  

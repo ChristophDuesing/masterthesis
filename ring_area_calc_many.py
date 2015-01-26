@@ -258,14 +258,14 @@ def main2():
         plt.show()
     
     # circle smaller than lower left edge
-    px, py = 75.5, 8.5
+    px, py = 0.5, 2.5
     #r = np.sqrt((px - 0.5) ** 2 + (py - 0.5) ** 2) - 0.2
-    r=69.57258065
+    r= 2*np.sqrt(2)
     plot_with_area(px, py, r)
 
     # circle hits lower left edge
-    px, py = 75.5, 8.5
-    r = 75.49193548
+    px, py = 0.5, 2.5
+    r = 2*np.sqrt(2)
     plot_with_area(px, py, r)  # <- wrong as well ! 
 
     ## circle larger than lower left edge
@@ -358,8 +358,8 @@ def main3():
         np.arange(185) + 0.5,
         )
     
-    r1 = 69.57258065
-    r2 = 75.49193548
+    r1 = 1.79586770
+    r2 = 2.10161708
     
     A1, intersec1, intersected1 = get_circle_area_for_pix((px, py), r1)
     A2, intersec2, intersected2 = get_circle_area_for_pix((px, py), r2)
