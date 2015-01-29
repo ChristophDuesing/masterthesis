@@ -220,6 +220,9 @@ def waterfall_plot(f, r_grid_mean, datei, attachment):
     #pl.savefig('/export/data1/cduesing/Figures/Problems/TEST/Waterfallplot_'+attachment+datei.split('.')[0]+'.png', dpi=300)
     pl.show()
     
+ 
+
+
     
 if __name__ == '__main__':
 
@@ -246,7 +249,33 @@ if __name__ == '__main__':
     print "waterfall_plot"
     waterfall_plot(powerspektrum, rgrid_mean, datei,'_')
     print  rgrid_mean
+    
+    #def Wert_durch_d(plane):
+import pylab as pl
+px, py = np.meshgrid(
+    np.arange(-185,186),
+    np.arange(-185,186),
+    )
+z = 185.
+d = [] 
 
+d = np.sqrt(px**2+py**2)
+tupel = list()
+for i,j in zip(plane,d):    
+    tupel.extend(zip(np.log10(j),np.log10(i)))
+tupel2=zip(*tupel)    
+
+pl.close()
+#pl.rc('text', usetex=True)
+#pl.rc('font', family='serif')
+pl.xlabel(r"$\log_{10}(|d|=\sqrt{p_x^2+p_y^2})$ Distance to center ")
+pl.ylabel(r"$\log_{10}$ Value of Pixel")
+
+#pl.scatter(*zip(*tupel))
+pl.plot(*zip(*tupel),color='red', linestyle='.', marker='.')
+#pl.loglog(tupel,"xr")
+
+pl.show()
     
     #f = 1
     #for index, Cubus in enumerate(Cubes_4x4):
