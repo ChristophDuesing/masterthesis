@@ -50,9 +50,11 @@ def quadratic_shape(fit):
 
     
 def get_power_spektra(datacube):
-    power_spektra = [] 
+    power_spektra = []
+    #shape= 512, 512
     for i in datacube:
         fft_spek = np.fft.fft2(i, axes=(-2, -1))
+        #fft_spek = np.fft.hfft(i,axis = 0)
         fft_spek = np.fft.fftshift(fft_spek)
         pow_spek = (np.abs(fft_spek)**2)/len(fft_spek)
         power_spektra.append(pow_spek)
@@ -251,6 +253,7 @@ if __name__ == '__main__':
     print  rgrid_mean
     
     #def Wert_durch_d(plane):
+    plane = FFT_Power_spektra[312]
 import pylab as pl
 px, py = np.meshgrid(
     np.arange(-185,186),
